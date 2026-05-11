@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선교편지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans KR', sans-serif; background: #e8e4de; color: #2a2118; padding: 32px 16px; }
+
+.editor-bar { max-width: 794px; margin: 0 auto 20px; background: #2a2118; border-radius: 8px; padding: 12px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.editor-bar span { color: #c9b99a; font-size: 13px; }
+.btn { padding: 7px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; }
+.btn-print { background: #c9a96e; color: #fff; }
+.btn-add-page { background: #4a7c6b; color: #fff; }
+
+.page { max-width: 794px; margin: 0 auto 40px; background: #fdfaf5; border: 2.5px solid #8b6e45; box-shadow: 0 4px 24px rgba(0,0,0,0.13); padding: 48px 52px; position: relative; }
+.page::before { content: ''; position: absolute; inset: 10px; border: 1px solid #c9b99a; pointer-events: none; }
+
+.letter-header { text-align: center; border-bottom: 2px solid #8b6e45; padding-bottom: 20px; margin-bottom: 24px; }
+.letter-header .date-title { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 700; color: #5a3e1b; letter-spacing: 0.04em; }
+.letter-header .subtitle { font-size: 13px; color: #8b6e45; margin-top: 4px; font-style: italic; }
+.contact-row { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 12px; font-size: 12.5px; color: #6b5230; }
+.contact-row span { display: flex; align-items: center; gap: 5px; }
+
+[contenteditable] { outline: none; border-bottom: 1px dashed transparent; transition: border-color 0.2s; }
+[contenteditable]:hover, [contenteditable]:focus { border-bottom: 1px dashed #c9a96e; }
+
+.section { margin-bottom: 28px; }
+.section-title { font-family: 'Noto Serif KR', serif; font-size: 14px; font-weight: 700; color: #fff; background: #8b6e45; display: inline-block; padding: 3px 14px; margin-bottom: 12px; letter-spacing: 0.06em; }
+.section-body { font-size: 13.5px; line-height: 1.9; color: #2a2118; }
+
+/* Photo grid */
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+/* Resizable photo slot */
+.photo-slot {
+  position: relative;
+  width: 180px;
+  height: 135px;
+  min-width: 80px;
+  min-height: 60px;
+  background: #f0ebe1;
+  border: 1.5px dashed #c9b99a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  resize: both; /* native resize */
+}
+.photo-slot:hover { border-color: #8b6e45; }
+.photo-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; pointer-events: none; }
+.photo-slot .placeholder-text { font-size: 12px; color: #b0967a; text-align: center; pointer-events: none; z-index: 1; }
+.photo-slot .placeholder-text .plus { font-size: 28px; display: block; margin-bottom: 4px; }
+.photo-slot .caption { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(42,33,24,0.6); color: #fdfaf5; font-size: 11px; padding: 3px 8px; text-align: center; z-index: 2; }
+.photo-slot .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 3; line-height: 1; }
+.photo-slot:hover .remove-btn { display: flex; }
+
+/* Resize hint */
+.photo-slot .resize-hint {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  font-size: 10px;
+  color: #c9b99a;
+  pointer-events: none;
+  z-index: 3;
+  line-height: 1;
+}
+.photo-slot img ~ .resize-hint { color: rgba(255,255,255,0.6); }
+
+.prayer-list { list-style: none; }
+.prayer-list li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px dotted #d9cdb8; font-size: 13.5px; line-height: 1.7; }
+.prayer-list li:last-child { border-bottom: none; }
+.prayer-list li::before { content: '✦'; color: #8b6e45; flex-shrink: 0; margin-top: 2px; font-size: 10px; }
+
+.account-box { background: #f5efe4; border: 1.5px solid #c9b99a; padding: 16px 20px; margin-top: 10px; }
+.account-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px dotted #d9cdb8; }
+.account-row:last-child { border-bottom: none; }
+.account-row .label { color: #8b6e45; font-weight: 500; }
+
+.letter-footer { border-top: 2px solid #8b6e45; padding-top: 16px; margin-top: 28px; text-align: center; font-size: 12px; color: #8b6e45; font-style: italic; }
+
+.add-activity-btn { display: block; width: 100%; padding: 8px; background: transparent; border: 1.5px dashed #c9b99a; color: #b0967a; font-size: 12px; font-family: inherit; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+.add-activity-btn:hover { background: #f5efe4; border-color: #8b6e45; color: #8b6e45; }
+
+/* PRINT */
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  html, body { width: 210mm; background: #fff !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #lock-screen, .editor-bar, .add-activity-btn, .remove-btn, .resize-hint { display: none !important; }
+  [contenteditable] { border-bottom: none !important; }
+  .photo-slot .placeholder-text { display: none; }
+  .photo-slot { resize: none !important; overflow: hidden; border: 1px solid #c9b99a !important; }
+  .page { width: 210mm !important; max-width: 210mm !important; height: 297mm !important; overflow: hidden; margin: 0 !important; padding: 14mm 16mm !important; box-shadow: none !important; border: none !important; border-left: 7mm solid #8b6e45 !important; page-break-after: always; break-after: page; }
+  .page:last-of-type { page-break-after: avoid; break-after: avoid; }
+  .page::before { display: none !important; }
+  .letter-header { padding-bottom: 8px !important; margin-bottom: 12px !important; }
+  .letter-header .date-title { font-size: 18px !important; }
+  .contact-row { font-size: 10.5px !important; margin-top: 5px !important; }
+  .section { margin-bottom: 12px !important; }
+  .section-title { font-size: 11.5px !important; padding: 2px 10px !important; margin-bottom: 6px !important; }
+  .section-body { font-size: 11.5px !important; line-height: 1.7 !important; }
+  .photo-grid { gap: 5px !important; margin: 5px 0 !important; }
+  .prayer-list li { font-size: 11.5px !important; padding: 3px 0 !important; }
+  .account-row { font-size: 11px !important; padding: 3px 0 !important; }
+  .account-box { padding: 10px 14px !important; }
+  .letter-footer { font-size: 10.5px !important; padding-top: 8px !important; margin-top: 10px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Lock screen -->
+<div id="lock-screen" style="position:fixed;inset:0;background:#fdfaf5;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Noto Sans KR',sans-serif;">
+  <div style="border:2.5px solid #8b6e45;padding:48px 52px;text-align:center;max-width:380px;width:90%;background:#fdfaf5;">
+    <div style="font-size:32px;margin-bottom:12px;">✉️</div>
+    <h2 style="font-family:'Noto Serif KR',serif;color:#5a3e1b;font-size:20px;margin-bottom:6px;">선교편지</h2>
+    <p style="color:#8b6e45;font-size:13px;margin-bottom:24px;">비밀번호를 입력해 주세요</p>
+    <input id="pw-input" type="password" placeholder="Password" style="width:100%;padding:10px 14px;border:1.5px solid #c9b99a;background:#f5efe4;font-size:14px;margin-bottom:12px;outline:none;font-family:inherit;" onkeydown="if(event.key==='Enter')checkPW()"/>
+    <div id="pw-error" style="color:#a12c7b;font-size:12px;margin-bottom:10px;display:none;">비밀번호가 틀렸습니다 🙏</div>
+    <button onclick="checkPW()" style="width:100%;padding:10px;background:#8b6e45;color:#fff;border:none;font-size:14px;font-family:inherit;cursor:pointer;">입장하기</button>
+  </div>
+</div>
+<script>
+function checkPW(){var v=document.getElementById("pw-input").value;if(v==="HelloNamibia"){document.getElementById("lock-screen").style.display="none";}else{document.getElementById("pw-error").style.display="block";document.getElementById("pw-input").value="";document.getElementById("pw-input").focus();}}
+document.getElementById("pw-input").focus();
+</script>
+
+<!-- Editor bar -->
+<div class="editor-bar">
+  <span>✏️ 클릭해서 수정 | 사진 클릭 업로드 | 📐 오른쪽 하단 드래그로 크기 조정</span>
+  <button class="btn btn-add-page" onclick="addPage()">+ 페이지 추가</button>
+  <button class="btn btn-print" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+</div>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="letter-header">
+    <div class="date-title" contenteditable="true">2026년 5월 선교편지</div>
+    <div class="subtitle" contenteditable="true">나미비아 선교현장에서 전합니다</div>
+    <div class="contact-row">
+      <span>📞 <span contenteditable="true">+264 00-000-0000</span></span>
+      <span>📍 <span contenteditable="true">Windhoek, Namibia</span></span>
+      <span>💬 카톡 <span contenteditable="true">kakao_id</span></span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">인사말</div>
+    <div class="section-body" contenteditable="true">사랑하는 후원자 여러분, 주님의 은혜 가운데 평안하신지요.<br>이번 달도 하나님의 손길 아래 귀한 사역을 감당할 수 있어 감사드립니다. 여러분의 기도와 후원이 이 땅의 열매가 되고 있습니다.</div>
+  </div>
+  <div class="section">
+    <div class="section-title">사역 현장</div>
+    <div class="photo-grid" id="grid-p1">
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+    </div>
+    <button class="add-activity-btn" onclick="addPhotoSlot('grid-p1')">+ 사진 추가</button>
+  </div>
+  <div class="section">
+    <div class="section-title">이번 달 사역</div>
+    <div class="section-body" contenteditable="true">이번 달에는 현지 교회와 연합하여 어린이 성경학교를 진행하였습니다. 약 40명의 아이들이 참석하였으며, 말씀을 통해 기쁨이 가득한 시간을 가졌습니다.<br><br>또한 지역 사회 의료 봉사팀과 함께 빈민 지역을 방문하여 건강검진과 함께 복음을 전하는 귀한 시간도 있었습니다.</div>
+  </div>
+  <div class="letter-footer" contenteditable="true">"내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라" (빌 4:13)</div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+  <div class="letter-header">
+    <div class="date-title" contenteditable="true">2026년 5월 선교편지 — 2</div>
+    <div class="contact-row">
+      <span>📞 <span contenteditable="true">+264 00-000-0000</span></span>
+      <span>📍 <span contenteditable="true">Windhoek, Namibia</span></span>
+      <span>💬 카톡 <span contenteditable="true">kakao_id</span></span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">사역 현장 (계속)</div>
+    <div class="photo-grid" id="grid-p2">
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+      <div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div>
+    </div>
+    <button class="add-activity-btn" onclick="addPhotoSlot('grid-p2')">+ 사진 추가</button>
+  </div>
+  <div class="section">
+    <div class="section-title">기도 제목</div>
+    <ul class="prayer-list" id="prayer-list">
+      <li><span contenteditable="true">현지 어린이 성경학교 사역이 지속적으로 열매 맺도록</span></li>
+      <li><span contenteditable="true">현지 동역자들의 건강과 믿음이 굳건하게 세워지도록</span></li>
+      <li><span contenteditable="true">다음 달 예정된 의료 봉사 사역의 준비가 잘 이루어지도록</span></li>
+      <li><span contenteditable="true">선교사 가정의 건강과 영적 충만함을 위하여</span></li>
+    </ul>
+    <button class="add-activity-btn" onclick="addPrayer()">+ 기도 제목 추가</button>
+  </div>
+  <div class="section">
+    <div class="section-title">후원 계좌</div>
+    <div class="account-box">
+      <div class="account-row"><span class="label">은행</span><span contenteditable="true">국민은행</span></div>
+      <div class="account-row"><span class="label">계좌번호</span><span contenteditable="true">000-000-000000</span></div>
+      <div class="account-row"><span class="label">예금주</span><span contenteditable="true">홍길동</span></div>
+      <div class="account-row"><span class="label">PayPal / 해외송금</span><span contenteditable="true">mission@email.com</span></div>
+    </div>
+  </div>
+  <div class="letter-footer" contenteditable="true">여러분의 기도와 후원에 진심으로 감사드립니다 🙏<br>다음 달에도 하나님의 은혜로 소식 전하겠습니다.</div>
+</div>
+
+<script>
+function triggerUpload(slot){slot.querySelector('input[type="file"]').click();}
+function loadPhoto(input){
+  var slot=input.closest('.photo-slot');
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=slot.querySelector('img');
+    if(!img){img=document.createElement('img');slot.insertBefore(img,slot.firstChild);}
+    img.src=e.target.result;
+    slot.querySelector('.placeholder-text').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(e,btn){
+  e.stopPropagation();
+  var slot=btn.closest('.photo-slot');
+  var img=slot.querySelector('img');
+  if(img)img.remove();
+  slot.querySelector('.placeholder-text').style.display='';
+  slot.querySelector('input[type="file"]').value='';
+}
+function addPhotoSlot(gridId){
+  var grid=document.getElementById(gridId);
+  var slot=document.createElement('div');
+  slot.className='photo-slot';
+  slot.onclick=function(){triggerUpload(this);};
+  slot.innerHTML='<span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">사진 설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)">';
+  grid.appendChild(slot);
+}
+function addPrayer(){
+  var list=document.getElementById('prayer-list');
+  var li=document.createElement('li');
+  li.innerHTML='<span contenteditable="true">새 기도 제목</span>';
+  list.appendChild(li);
+  var s=li.querySelector('span');s.focus();
+  var r=document.createRange();r.selectNodeContents(s);
+  window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+}
+var pc=2;
+function addPage(){
+  pc++;
+  var p=document.createElement('div');
+  p.className='page';
+  var gid='grid-p'+pc;
+  p.innerHTML='<div class="letter-header"><div class="date-title" contenteditable="true">2026년 5월 선교편지 — '+pc+'</div><div class="contact-row"><span>📞 <span contenteditable="true">+264 00-000-0000</span></span><span>📍 <span contenteditable="true">Windhoek, Namibia</span></span></div></div><div class="section"><div class="section-title">내용</div><div class="section-body" contenteditable="true">내용을 입력하세요.</div></div><div class="section"><div class="section-title">사진</div><div class="photo-grid" id="'+gid+'"><div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div><div class="photo-slot" onclick="triggerUpload(this)"><span class="placeholder-text"><span class="plus">＋</span>사진 추가</span><span class="caption" contenteditable="true" onclick="event.stopPropagation()">설명</span><button class="remove-btn" onclick="removePhoto(event,this)">✕</button><span class="resize-hint">⤡</span><input type="file" accept="image/*" style="display:none" onchange="loadPhoto(this)"></div></div><button class="add-activity-btn" onclick="addPhotoSlot(\''+gid+'\')">+ 사진 추가</button></div><div class="letter-footer" contenteditable="true">"주님의 은혜로 나아갑니다"</div>';
+  document.body.appendChild(p);
+}
+</script>
+</body>
+</html>
